@@ -1,0 +1,20 @@
+[Unit]
+Description=Govee Bluetooth Temperature Logger
+After=network.target bluetooth.target
+Requires=bluetooth.service
+
+[Service]
+ExecStart=/home/zorger/.local/pipx/venvs/bluepy/bin/python3 /usr/local/bin/govee_logger.py
+Restart=always
+User=zorger
+Group=zorger
+WorkingDirectory=/usr/local/bin/
+Environment="PATH=/home/zorger/.local/pipx/venvs/bluepy/bin:/usr/bin:/bin"
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+ExecStartPre=/bin/sleep 5
+StandardOutput=append:/var/log/govee_logger.log
+StandardError=append:/var/log/govee_logger.log
+
+[Install]
+WantedBy=multi-user.target
+
