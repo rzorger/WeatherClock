@@ -42,11 +42,11 @@ def write_to_file():
             f.write(f"{location}: {data}\n")
 
 def scan_govee():
-    """Scans for Govee sensor data every 5 seconds."""
+    """Scans for Govee sensor data every X seconds."""
     scanner = btle.Scanner().withDelegate(GoveeDelegate())
     while True:
-        scanner.scan(5.0)  # Scan for 5 seconds
-        time.sleep(30)  # Wait before next scan
+        scanner.scan(3.0)  # Scan for 3 seconds
+        time.sleep(60)  # Wait before next scan
 
 if __name__ == "__main__":
     scan_govee()
