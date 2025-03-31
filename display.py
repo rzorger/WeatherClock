@@ -1,17 +1,15 @@
 import tkinter as tk
-from tkinter import PhotoImage
 from PIL import Image, ImageTk
 import time
 import urllib.request
-import os
 
 # Path to the Govee sensor data file
 DATA_FILE = "/home/zorger/govee_data.txt"
-RADAR_URL = "https://radar.weather.gov/ridge/standard/KDOX_loop.gif"
+RADAR_URL = "https://radar.weather.gov/ridge/standard/KDOX_0.gif"
 RADAR_FILE = "/tmp/radar.gif"
 
 # Cropping configuration: (left, upper, right, lower)
-CROP_BOX = (0, 0, 600, 480)  # Crop to 600px width, full height
+CROP_BOX = (50, 0, 400, 440)  # Crop for better focus
 
 def read_sensor_data():
     """Reads the latest sensor data from the file."""
@@ -29,8 +27,8 @@ def read_sensor_data():
         return "N/A", "N/A"
 
 def update_display():
-    """Updates the clock, sensor data, and radar animation on the display."""
-    current_time = time.strftime("%I:%M %p")  # Format time as HH:MM AM/PM
+    """Updates the clock, sensor data, and radar image on the display."""
+    current_time = time.strftime("%H:%M")  # 24-hour format
     indoor, outdoor = read_sensor_data()
 
     clock_label.config(text=current_time)
@@ -41,21 +39,17 @@ def update_display():
     if int(time.time()) % 300 == 0:
         update_radar()
 
-    root.after(1000, update_display)  # Refresh every second
+    root.after(1000, update_display)  # Refresh display every second
 
 def update_radar():
-    """Downloads and updates the radar animation with cropping."""
+    """Downloads and displays the latest radar image."""
     try:
         urllib.request.urlretrieve(RADAR_URL, RADAR_FILE)
-        
-        # Open the downloaded radar GIF
         radar_image = Image.open(RADAR_FILE)
-
-        # Crop the image (CROP_BOX is (left, upper, right, lower))
-        radar_image_cropped = radar_image.crop(CROP_BOX)
-
-        # Convert the cropped image to PhotoImage for tkinter
-        radar_photo = ImageTk.PhotoImage(radar_image_cropped)
+        
+        # Crop the image if needed
+        cropped_frame = radar_image.crop(CROP_BOX)
+        radar_photo = ImageTk.PhotoImage(cropped_frame)
 
         radar_label.config(image=radar_photo)
         radar_label.image = radar_photo  # Prevent garbage collection
@@ -70,22 +64,34 @@ root.configure(bg="black")
 root.attributes('-fullscreen', True)  # Fullscreen mode
 root.bind('<Escape>', lambda e: root.destroy())  # Exit on Esc key
 
-# Configure labels
-font_large = ("Helvetica", 50, "bold")
-font_medium = ("Helvetica", 20, "bold")
-font_small = ("Helvetica", 5, "bold")
+# Main container frames
+top_frame = tk.Frame(root, bg="black")
+top_frame.pack(fill="both", expand=False)
 
-clock_label = tk.Label(root, text="", font=font_large, fg="white", bg="black")
-clock_label.pack(pady=2)
+bottom_frame = tk.Frame(root, bg="black")
+bottom_frame.pack(fill="both", expand=True)
 
-indoor_label = tk.Label(root, text="In: N/A", font=font_small, fg="white", bg="black")
-indoor_label.pack(pady=2)
+left_frame = tk.Frame(bottom_frame, bg="black")
+left_frame.pack(side="left", fill="both", expand=True, padx=20, pady=20)
 
-outdoor_label = tk.Label(root, text="Out: N/A", font=font_medium, fg="white", bg="black")
-outdoor_label.pack(pady=2)
+right_frame = tk.Frame(bottom_frame, bg="black")
+right_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)
 
-# Add radar placeholder
-radar_label = tk.Label(root, bg="black")
+# Clock label in the top frame
+font_large = ("Helvetica", 80, "bold")
+clock_label = tk.Label(top_frame, text="", font=font_large, fg="white", bg="black")
+clock_label.pack(pady=10)
+
+# Indoor/Outdoor labels in the left frame
+font_medium = ("Helvetica", 40, "bold")
+indoor_label = tk.Label(left_frame, text="In: N/A", font=font_medium, fg="white", bg="black")
+indoor_label.pack(pady=10, anchor="w")
+
+outdoor_label = tk.Label(left_frame, text="Out: N/A", font=font_medium, fg="white", bg="black")
+outdoor_label.pack(pady=10, anchor="w")
+
+# Radar placeholder in the right frame
+radar_label = tk.Label(right_frame, bg="black")
 radar_label.pack(pady=10)
 
 # Update radar on startup
