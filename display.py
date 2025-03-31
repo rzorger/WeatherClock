@@ -27,7 +27,7 @@ def read_sensor_data():
         return "N/A", "N/A"
 
 def update_display():
-    """Updates the clock, sensor data, and radar image on the display."""
+    """Updates the clock and sensor data on the display."""
     current_time = time.strftime("%H:%M")  # 24-hour format
     indoor, outdoor = read_sensor_data()
 
@@ -35,11 +35,8 @@ def update_display():
     indoor_label.config(text=f"In: {indoor}")
     outdoor_label.config(text=f"Out: {outdoor}")
 
-    # Refresh the radar every 5 minutes
-    if int(time.time()) % 300 == 0:
-        update_radar()
-
-    root.after(1000, update_display)  # Refresh display every second
+    # Refresh display every second
+    root.after(1000, update_display)
 
 def update_radar():
     """Downloads and displays the latest radar image."""
@@ -47,7 +44,7 @@ def update_radar():
         urllib.request.urlretrieve(RADAR_URL, RADAR_FILE)
         radar_image = Image.open(RADAR_FILE)
         
-        # Crop the image if needed
+        # Crop the image if necessary
         cropped_frame = radar_image.crop(CROP_BOX)
         radar_photo = ImageTk.PhotoImage(cropped_frame)
 
@@ -56,6 +53,9 @@ def update_radar():
         print("Radar updated successfully.")
     except Exception as e:
         print(f"Failed to update radar: {e}")
+    
+    # Schedule the next radar update in 5 minutes (300,000 ms)
+    root.after(300000, update_radar)
 
 # Initialize tkinter
 root = tk.Tk()
@@ -94,7 +94,7 @@ outdoor_label.pack(pady=10, anchor="w")
 radar_label = tk.Label(right_frame, bg="black")
 radar_label.pack(pady=10)
 
-# Update radar on startup
+# Update radar and start looping
 update_radar()
 
 # Start updating display
