@@ -1,6 +1,8 @@
 # WeatherClock
 Raspberry Pi Weather Station
 
+Start with :
+python3 ./display.py
 
 Service file goes in:
 /etc/systemd/system/govee_logger.service
