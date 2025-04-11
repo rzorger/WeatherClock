@@ -12,30 +12,39 @@ RADAR_FILE = "/tmp/radar.gif"
 CROP_BOX = (50, 0, 400, 440)  # Crop for better focus
 
 def read_sensor_data():
-    """Reads the latest sensor data from the file."""
+    """Reads the latest sensor data from the file and splits values."""
     try:
         with open(DATA_FILE, "r") as file:
             lines = file.readlines()
-            data = {}
+            data = {"in_temp": "N/A", "in_humidity": "N/A",
+                    "out_temp": "N/A", "out_humidity": "N/A"}
+
             for line in lines:
-                parts = line.strip().split(": ")
-                if len(parts) == 2:
-                    key, value = parts
-                    data[key] = value
-            return data.get("In", "N/A"), data.get("Out", "N/A")
+                if line.startswith("In:"):
+                    parts = line.strip().split(": ")[1].split(", ")
+                    if len(parts) == 2:
+                        data["in_temp"], data["in_humidity"] = parts
+                elif line.startswith("Out:"):
+                    parts = line.strip().split(": ")[1].split(", ")
+                    if len(parts) == 2:
+                        data["out_temp"], data["out_humidity"] = parts
+
+            return data["in_temp"], data["in_humidity"], data["out_temp"], data["out_humidity"]
+
     except FileNotFoundError:
-        return "N/A", "N/A"
+        return "N/A", "N/A", "N/A", "N/A"
 
 def update_display():
     """Updates the clock and sensor data on the display."""
-    current_time = time.strftime("%H:%M")  # 24-hour format
-    indoor, outdoor = read_sensor_data()
+    current_time = time.strftime("%I:%M").lstrip("0")  # 12-hour format, no AM/PM, no leading 0
+    in_temp, in_humidity, out_temp, out_humidity = read_sensor_data()
 
     clock_label.config(text=current_time)
-    indoor_label.config(text=f"In: {indoor}")
-    outdoor_label.config(text=f"Out: {outdoor}")
+    in_temp_label.config(text=f"{in_temp}")
+    in_humidity_label.config(text=f"{in_humidity}")
+    out_temp_label.config(text=f"Out: {out_temp}")
+    out_humidity_label.config(text=f"{out_humidity}")
 
-    # Refresh display every second
     root.after(1000, update_display)
 
 def update_radar():
@@ -43,28 +52,24 @@ def update_radar():
     try:
         urllib.request.urlretrieve(RADAR_URL, RADAR_FILE)
         radar_image = Image.open(RADAR_FILE)
-        
-        # Crop the image if necessary
         cropped_frame = radar_image.crop(CROP_BOX)
         radar_photo = ImageTk.PhotoImage(cropped_frame)
-
         radar_label.config(image=radar_photo)
         radar_label.image = radar_photo  # Prevent garbage collection
         print("Radar updated successfully.")
     except Exception as e:
         print(f"Failed to update radar: {e}")
-    
-    # Schedule the next radar update in 5 minutes (300,000 ms)
-    root.after(300000, update_radar)
+
+    root.after(300000, update_radar)  # Every 5 minutes
 
 # Initialize tkinter
 root = tk.Tk()
 root.title("Weather Display")
 root.configure(bg="black")
-root.attributes('-fullscreen', True)  # Fullscreen mode
-root.bind('<Escape>', lambda e: root.destroy())  # Exit on Esc key
+root.attributes('-fullscreen', True)
+root.bind('<Escape>', lambda e: root.destroy())
 
-# Main container frames
+# Layout setup
 top_frame = tk.Frame(root, bg="black")
 top_frame.pack(fill="both", expand=False)
 
@@ -77,29 +82,35 @@ left_frame.pack(side="left", fill="both", expand=True, padx=20, pady=20)
 right_frame = tk.Frame(bottom_frame, bg="black")
 right_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)
 
-# Clock label in the top frame
-font_large = ("Helvetica", 80, "bold")
+# Clock
+font_large = ("Helvetica", 100, "bold")
 clock_label = tk.Label(top_frame, text="", font=font_large, fg="white", bg="black")
-clock_label.pack(pady=10)
+clock_label.pack(pady=2)
 
-# Indoor/Outdoor labels in the left frame
+# Indoor/Outdoor Labels
+font_medium = ("Helvetica", 20, "bold")
+in_label = tk.Label(left_frame, text="In:", font=font_medium, fg="orange", bg="black")
+
 font_medium = ("Helvetica", 40, "bold")
-indoor_label = tk.Label(left_frame, text="In: N/A", font=font_medium, fg="white", bg="black")
-indoor_label.pack(pady=10, anchor="w")
+in_temp_label = tk.Label(left_frame, text="N/A", font=font_medium, fg="orange", bg="black")
+in_temp_label.pack(pady=5, anchor="w")
 
-outdoor_label = tk.Label(left_frame, text="Out: N/A", font=font_medium, fg="white", bg="black")
-outdoor_label.pack(pady=10, anchor="w")
+in_humidity_label = tk.Label(left_frame, text="In Humidity: N/A", font=font_medium, fg="orange", bg="black")
+in_humidity_label.pack(pady=5, anchor="w")
 
-# Radar placeholder in the right frame
+font_medium = ("Helvetica", 30, "bold")
+out_temp_label = tk.Label(left_frame, text="Out Temp: N/A", font=font_medium, fg="orange", bg="black")
+out_temp_label.pack(pady=5, anchor="w")
+
+out_humidity_label = tk.Label(left_frame, text="Out Humidity: N/A", font=font_medium, fg="orange", bg="black")
+out_humidity_label.pack(pady=5, anchor="w")
+
+# Radar
 radar_label = tk.Label(right_frame, bg="black")
 radar_label.pack(pady=10)
 
-# Update radar and start looping
+# Start everything
 update_radar()
-
-# Start updating display
 update_display()
-
-# Run the tkinter main loop
 root.mainloop()
 
