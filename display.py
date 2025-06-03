@@ -69,6 +69,7 @@ def update_radar():
 root = tk.Tk()
 root.title("Weather Display")
 root.configure(bg="black")
+root.configure(cursor="none")
 root.attributes('-fullscreen', True)
 root.bind('<Escape>', lambda e: root.destroy())
 
