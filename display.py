@@ -39,10 +39,13 @@ def update_display():
     current_time = time.strftime("%I:%M").lstrip("0")  # 12-hour format, no AM/PM, no leading 0
     in_temp, in_humidity, out_temp, out_humidity = read_sensor_data()
 
+    out_temp = out_temp[:-1]
+    in_temp = in_temp[:-1]
+
     clock_label.config(text=current_time)
     in_temp_label.config(text=f"{in_temp}")
     in_humidity_label.config(text=f"{in_humidity}")
-    out_temp_label.config(text=f"Out: {out_temp}")
+    out_temp_label.config(text=f"{out_temp}")
     out_humidity_label.config(text=f"{out_humidity}")
 
     root.after(1000, update_display)
@@ -77,33 +80,31 @@ bottom_frame = tk.Frame(root, bg="black")
 bottom_frame.pack(fill="both", expand=True)
 
 left_frame = tk.Frame(bottom_frame, bg="black")
-left_frame.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+left_frame.pack(side="left", fill="both", expand=True, padx=20, pady=10)
 
 right_frame = tk.Frame(bottom_frame, bg="black")
-right_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+right_frame.pack(side="right", fill="both", expand=True, padx=20, pady=10)
 
 # Clock
-font_large = ("Helvetica", 100, "bold")
+font_large = ("Helvetica", 105, "bold")
 clock_label = tk.Label(top_frame, text="", font=font_large, fg="white", bg="black")
 clock_label.pack(pady=2)
 
 # Indoor/Outdoor Labels
-font_medium = ("Helvetica", 20, "bold")
-in_label = tk.Label(left_frame, text="In:", font=font_medium, fg="orange", bg="black")
+out_temp_label = tk.Label(left_frame, text="Out Temp: N/A", font=font_large, fg="orange", bg="black")
+out_temp_label.pack(pady=5, anchor="w")
+
+font_medium = ("Helvetica", 30, "bold")
+out_humidity_label = tk.Label(left_frame, text="Out Humidity: N/A", font=font_medium, fg="orange", bg="black")
+out_humidity_label.pack(pady=5, anchor="w")
 
 font_medium = ("Helvetica", 40, "bold")
 in_temp_label = tk.Label(left_frame, text="N/A", font=font_medium, fg="orange", bg="black")
 in_temp_label.pack(pady=5, anchor="w")
 
+font_medium = ("Helvetica", 30, "bold")
 in_humidity_label = tk.Label(left_frame, text="In Humidity: N/A", font=font_medium, fg="orange", bg="black")
 in_humidity_label.pack(pady=5, anchor="w")
-
-font_medium = ("Helvetica", 30, "bold")
-out_temp_label = tk.Label(left_frame, text="Out Temp: N/A", font=font_medium, fg="orange", bg="black")
-out_temp_label.pack(pady=5, anchor="w")
-
-out_humidity_label = tk.Label(left_frame, text="Out Humidity: N/A", font=font_medium, fg="orange", bg="black")
-out_humidity_label.pack(pady=5, anchor="w")
 
 # Radar
 radar_label = tk.Label(right_frame, bg="black")
